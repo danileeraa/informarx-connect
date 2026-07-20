@@ -62,23 +62,16 @@ jobs:
       run: |
         $vcpkg = $env:VCPKG_ROOT
         $opusIncDir = "$vcpkg/installed/x64-windows-static/include/opus"
-        if (-not (Test-Path "$opusIncDir/opus_multistream.h")) {
-          Write-Host "opus headers missing from install dir, copying from build tree..."
-          $buildSrc = Get-ChildItem "$vcpkg/buildtrees/opus/src" -Directory | Select-Object -First 1
-          if ($buildSrc) {
-            $src = "$($buildSrc.FullName)/include"
-            New-Item -ItemType Directory -Force -Path $opusIncDir | Out-Null
-            Copy-Item "$src/opus.h" "$opusIncDir/" -Force
-            Copy-Item "$src/opus_types.h" "$opusIncDir/" -Force
-            Copy-Item "$src/opus_defines.h" "$opusIncDir/" -Force
-            Copy-Item "$src/opus_multistream.h" "$opusIncDir/" -Force
-            Copy-Item "$src/opus_projection.h" "$opusIncDir/" -Force
-            Write-Host "Copied opus headers from build tree."
-          } else {
-            Write-Host "WARNING: Could not find opus build tree source."
-          }
+        if (Test-Path "$opusIncDir/opus_multistream.h") {
+          Write-Host "opus headers already present in install dir."
         } else {
-          Write-Host "opus headers already present."
+          Write-Host "Downloading opus headers from source..."
+          $url = "https://raw.githubusercontent.com/xiph/opus/v1.5.2/include"
+          New-Item -ItemType Directory -Force -Path $opusIncDir | Out-Null
+          @("opus.h","opus_defines.h","opus_multistream.h","opus_projection.h","opus_types.h") | ForEach-Object {
+            Invoke-WebRequest -Uri "$url/$_" -OutFile "$opusIncDir/$_" -UseBasicParsing
+          }
+          Write-Host "Downloaded opus headers to $opusIncDir"
         }
 
     - name: Build
