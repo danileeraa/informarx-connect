@@ -33,7 +33,7 @@ jobs:
 
     - name: Install vcpkg dependencies
       run: |
-        $VCPKG_ROOT/vcpkg install --triplet x64-windows --x-install-root="$VCPKG_ROOT/installed"
+        $VCPKG_ROOT/vcpkg install --triplet x64-windows-static --x-install-root="$VCPKG_ROOT/installed"
       shell: bash
       working-directory: ${{ github.workspace }}
 
@@ -49,13 +49,11 @@ jobs:
       run: |
         $vcpkg = $env:VCPKG_ROOT
         echo "VCPKG_ROOT=$vcpkg" >> $env:GITHUB_ENV
-        echo "VCPKGRS_DYNAMIC=1" >> $env:GITHUB_ENV
-        $include = "$vcpkg/installed/x64-windows/include"
-        $lib = "$vcpkg/installed/x64-windows/lib"
+        $include = "$vcpkg/installed/x64-windows-static/include"
+        $lib = "$vcpkg/installed/x64-windows-static/lib"
         echo "CL=/I$include" >> $env:GITHUB_ENV
         echo "INCLUDE=$include" >> $env:GITHUB_ENV
         echo "LIB=$lib" >> $env:GITHUB_ENV
-        echo "LIBPATH=$lib" >> $env:GITHUB_ENV
 
     - name: Build
       run: cargo build --release --target x86_64-pc-windows-msvc
