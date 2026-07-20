@@ -50,17 +50,17 @@ jobs:
 
     - name: Set vcpkg environment
       run: |
-        $vcpkg = $env:VCPKG_ROOT
+        $vcpkg = $env:RUNVCPKG_VCPKG_ROOT
+        Write-Host "Using VCPKG_ROOT=$vcpkg"
         echo "VCPKG_ROOT=$vcpkg" >> $env:GITHUB_ENV
         $include = "$vcpkg/installed/x64-windows-static/include"
         $lib = "$vcpkg/installed/x64-windows-static/lib"
         echo "CL=/I$include" >> $env:GITHUB_ENV
         echo "INCLUDE=$include;$env:INCLUDE" >> $env:GITHUB_ENV
-        echo "LIB=$lib;$env:LIB" >> $env:GITHUB_ENV
 
     - name: Ensure opus headers in vcpkg install
       run: |
-        $vcpkg = $env:VCPKG_ROOT
+        $vcpkg = $env:RUNVCPKG_VCPKG_ROOT
         $opusIncDir = "$vcpkg/installed/x64-windows-static/include/opus"
         if (Test-Path "$opusIncDir/opus_multistream.h") {
           Write-Host "opus headers already present in install dir."
