@@ -58,17 +58,27 @@ jobs:
         echo "INCLUDE=$include;$env:INCLUDE" >> $env:GITHUB_ENV
         echo "LIB=$lib;$env:LIB" >> $env:GITHUB_ENV
 
-    - name: Debug - List vcpkg include dirs
+    - name: Ensure opus headers in vcpkg install
       run: |
         $vcpkg = $env:VCPKG_ROOT
-        Write-Host "VCPKG_ROOT=$vcpkg"
-        $incDir = "$vcpkg/installed/x64-windows-static/include"
-        Write-Host "Checking $incDir"
-        if (Test-Path "$incDir/opus") {
-          Get-ChildItem "$incDir/opus" -Name
+        $opusIncDir = "$vcpkg/installed/x64-windows-static/include/opus"
+        if (-not (Test-Path "$opusIncDir/opus_multistream.h")) {
+          Write-Host "opus headers missing from install dir, copying from build tree..."
+          $buildSrc = Get-ChildItem "$vcpkg/buildtrees/opus/src" -Directory | Select-Object -First 1
+          if ($buildSrc) {
+            $src = "$($buildSrc.FullName)/include"
+            New-Item -ItemType Directory -Force -Path $opusIncDir | Out-Null
+            Copy-Item "$src/opus.h" "$opusIncDir/" -Force
+            Copy-Item "$src/opus_types.h" "$opusIncDir/" -Force
+            Copy-Item "$src/opus_defines.h" "$opusIncDir/" -Force
+            Copy-Item "$src/opus_multistream.h" "$opusIncDir/" -Force
+            Copy-Item "$src/opus_projection.h" "$opusIncDir/" -Force
+            Write-Host "Copied opus headers from build tree."
+          } else {
+            Write-Host "WARNING: Could not find opus build tree source."
+          }
         } else {
-          Write-Host "opus/ directory NOT FOUND in $incDir"
-          Get-ChildItem "$incDir" -Directory -Name
+          Write-Host "opus headers already present."
         }
 
     - name: Build
