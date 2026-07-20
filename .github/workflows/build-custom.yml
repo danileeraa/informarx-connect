@@ -47,10 +47,15 @@ jobs:
 
     - name: Set vcpkg environment
       run: |
-        echo "VCPKG_ROOT=$env:VCPKG_ROOT" >> $env:GITHUB_ENV
-        echo "$env:VCPKG_ROOT/installed/x64-windows/include" >> $env:GITHUB_PATH
-        echo "$env:VCPKG_ROOT/installed/x64-windows/lib" >> $env:GITHUB_PATH
+        $vcpkg = $env:VCPKG_ROOT
+        echo "VCPKG_ROOT=$vcpkg" >> $env:GITHUB_ENV
         echo "VCPKGRS_DYNAMIC=1" >> $env:GITHUB_ENV
+        $include = "$vcpkg/installed/x64-windows/include"
+        $lib = "$vcpkg/installed/x64-windows/lib"
+        echo "CL=/I$include" >> $env:GITHUB_ENV
+        echo "INCLUDE=$include" >> $env:GITHUB_ENV
+        echo "LIB=$lib" >> $env:GITHUB_ENV
+        echo "LIBPATH=$lib" >> $env:GITHUB_ENV
 
     - name: Build
       run: cargo build --release --target x86_64-pc-windows-msvc
