@@ -1,0 +1,49 @@
+name: Build Informarx Connect
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+
+env:
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+  VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
+
+jobs:
+  build-windows:
+    name: Windows x86_64
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgDirectory: ${{ runner.workspace }}/vcpkg
+        vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+
+    - name: Install vcpkg dependencies
+      run: |
+        $VCPKG_ROOT/vcpkg install --x-install-root="$VCPKG_ROOT/installed"
+      shell: bash
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-pc-windows-msvc
+
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Build
+      run: cargo build --release --target x86_64-pc-windows-msvc
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Informarx-Connect-Windows-x64
+        path: target/x86_64-pc-windows-msvc/release/informarx-connect.exe
