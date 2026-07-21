@@ -74,6 +74,9 @@ jobs:
           Write-Host "Downloaded opus headers to $opusIncDir"
         }
 
+    - name: Generate inline UI resources
+      run: python res/inline-sciter.py
+
     - name: Build
       run: cargo build --release --features inline --target x86_64-pc-windows-msvc
 
