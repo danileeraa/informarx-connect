@@ -11,8 +11,19 @@ env:
 
 jobs:
   build-windows:
-    name: Windows x86_64
+    name: Windows ${{ matrix.arch.name }}
     runs-on: windows-2022
+    strategy:
+      matrix:
+        arch:
+          - name: x64
+            target: x86_64-pc-windows-msvc
+            triplet: x64-windows-static
+            sciter: x64/sciter.dll
+          - name: x86
+            target: i686-pc-windows-msvc
+            triplet: x86-windows-static
+            sciter: x32/sciter.dll
 
     steps:
     - name: Checkout source
@@ -33,35 +44,37 @@ jobs:
 
     - name: Install vcpkg dependencies
       run: |
-        $VCPKG_ROOT/vcpkg install --triplet x64-windows-static --x-install-root="$VCPKG_ROOT/installed"
+        $VCPKG_ROOT/vcpkg install --triplet ${{ matrix.arch.triplet }} --x-install-root="$VCPKG_ROOT/installed"
       shell: bash
       working-directory: ${{ github.workspace }}
 
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
-        targets: x86_64-pc-windows-msvc
+        targets: ${{ matrix.arch.target }}
 
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
 
     - name: Set up MSVC dev environment
       uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch.name == 'x86' && 'x86' || 'amd64' }}
 
     - name: Set vcpkg environment
       run: |
         $vcpkg = $env:RUNVCPKG_VCPKG_ROOT
         Write-Host "Using VCPKG_ROOT=$vcpkg"
         echo "VCPKG_ROOT=$vcpkg" >> $env:GITHUB_ENV
-        $include = "$vcpkg/installed/x64-windows-static/include"
-        $lib = "$vcpkg/installed/x64-windows-static/lib"
+        $include = "$vcpkg/installed/${{ matrix.arch.triplet }}/include"
+        $lib = "$vcpkg/installed/${{ matrix.arch.triplet }}/lib"
         echo "CL=/I$include" >> $env:GITHUB_ENV
         echo "INCLUDE=$include;$env:INCLUDE" >> $env:GITHUB_ENV
 
     - name: Ensure opus headers in vcpkg install
       run: |
         $vcpkg = $env:RUNVCPKG_VCPKG_ROOT
-        $opusIncDir = "$vcpkg/installed/x64-windows-static/include/opus"
+        $opusIncDir = "$vcpkg/installed/${{ matrix.arch.triplet }}/include/opus"
         if (Test-Path "$opusIncDir/opus_multistream.h") {
           Write-Host "opus headers already present in install dir."
         } else {
@@ -78,17 +91,17 @@ jobs:
       run: python res/inline-sciter.py
 
     - name: Build
-      run: cargo build --release --features inline --target x86_64-pc-windows-msvc
+      run: cargo build --release --features inline --target ${{ matrix.arch.target }}
 
     - name: Download sciter.dll
       run: |
-        curl -LJ -o "${{ github.workspace }}/target/x86_64-pc-windows-msvc/release/sciter.dll" `
-          "https://github.com/c-smile/sciter-sdk/raw/master/bin.win/x64/sciter.dll"
+        curl -LJ -o "${{ github.workspace }}/target/${{ matrix.arch.target }}/release/sciter.dll" `
+          "https://github.com/c-smile/sciter-sdk/raw/master/bin.win/${{ matrix.arch.sciter }}"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Informarx-Connect-Windows-x64
+        name: Informarx-Connect-Windows-${{ matrix.arch.name }}
         path: |
-          target/x86_64-pc-windows-msvc/release/informarx-connect.exe
-          target/x86_64-pc-windows-msvc/release/sciter.dll
+          target/${{ matrix.arch.target }}/release/informarx-connect.exe
+          target/${{ matrix.arch.target }}/release/sciter.dll
