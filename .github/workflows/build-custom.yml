@@ -75,7 +75,7 @@ jobs:
         }
 
     - name: Build
-      run: cargo build --release --target x86_64-pc-windows-msvc
+      run: cargo build --release --features inline --target x86_64-pc-windows-msvc
 
     - name: Download sciter.dll
       run: |
