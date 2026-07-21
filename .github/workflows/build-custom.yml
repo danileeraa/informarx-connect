@@ -20,10 +20,6 @@ jobs:
             target: x86_64-pc-windows-msvc
             triplet: x64-windows-static
             sciter: x64/sciter.dll
-          - name: x86
-            target: i686-pc-windows-msvc
-            triplet: x86-windows-static
-            sciter: x32/sciter.dll
 
     steps:
     - name: Checkout source
