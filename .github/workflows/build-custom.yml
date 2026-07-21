@@ -77,8 +77,15 @@ jobs:
     - name: Build
       run: cargo build --release --target x86_64-pc-windows-msvc
 
+    - name: Download sciter.dll
+      run: |
+        curl -LJ -o "${{ github.workspace }}/target/x86_64-pc-windows-msvc/release/sciter.dll" `
+          "https://github.com/c-smile/sciter-sdk/raw/master/bin.win/x64/sciter.dll"
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: Informarx-Connect-Windows-x64
-        path: target/x86_64-pc-windows-msvc/release/informarx-connect.exe
+        path: |
+          target/x86_64-pc-windows-msvc/release/informarx-connect.exe
+          target/x86_64-pc-windows-msvc/release/sciter.dll
