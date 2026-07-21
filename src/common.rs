@@ -1006,7 +1006,7 @@ pub fn get_app_name() -> String {
 
 #[inline]
 pub fn is_rustdesk() -> bool {
-    hbb_common::config::APP_NAME.read().unwrap().eq("Informarx Connect")
+    hbb_common::config::APP_NAME.read().unwrap().eq("informarx-connect")
 }
 
 #[inline]
